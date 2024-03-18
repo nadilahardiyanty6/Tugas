@@ -1,0 +1,49 @@
+// Inisialisasi pin
+int ledPinIndoor = 13;      // Pin yang mengontrol LED di dalam ruangan
+int pirPin = A0;            // Pin yang terhubung ke PIR sensor (ruang dalam)
+int pirState = LOW;         // Menyimpan status deteksi PIR (awalnya tidak ada deteksi)
+int valPir = 0;             // Variabel untuk menyimpan nilai pembacaan PIR sensor
+int ledPinOutdoor = 10;     // Pin untuk mengendalikan LED di luar ruangan
+int ldrPin = A1;             // Pin untuk membaca nilai dari sensor LDR (ruang luar)
+
+void setup() {
+  pinMode(ledPinIndoor, OUTPUT);  // Mengatur ledPinIndoor sebagai output
+  pinMode(pirPin, INPUT);         // Mengatur pirPin sebagai input (PIR sensor)
+  pinMode(ledPinOutdoor, OUTPUT); // Mengatur ledPinOutdoor sebagai output
+  pinMode(ldrPin, INPUT);          // Mengatur ldrPin sebagai input (LDR sensor)
+  Serial.begin(9600);             // Inisialisasi komunikasi serial
+}
+
+void loop() {
+  // Membaca nilai dari PIR sensor (ruang dalam)
+  valPir = digitalRead(pirPin);
+
+  if (valPir == HIGH) {  // Jika deteksi gerakan di dalam ruangan
+    digitalWrite(ledPinIndoor, HIGH);  // Menyalakan LED di dalam ruangan
+    if (pirState == HIGH) {  // Jika sebelumnya terdeteksi gerakan di dalam ruangan
+      Serial.println("ADA ORANG,Dalam Rumah!"); // Cetak pesan ke Serial Monitor
+      pirState = LOW;  // Update status deteksi di dalam ruangan menjadi tidak ada
+    }
+  } else {  // Jika tidak ada deteksi gerakan di dalam ruangan
+    digitalWrite(ledPinIndoor, LOW);  // Matikan LED di dalam ruangan
+    if (pirState == LOW) {  // Jika sebelumnya tidak terdeteksi gerakan di dalam ruangan
+      Serial.println("TIDAK ADA ORANG,Di Dalam Rumah!"); // Cetak pesan ke Serial Monitor
+      pirState = HIGH;  // Update status deteksi di dalam ruangan menjadi terdeteksi
+    }
+  }
+
+  // Membaca nilai dari sensor LDR (ruang luar)
+  int statusLdr = analogRead(ldrPin);
+
+  if (statusLdr > 300) {
+    digitalWrite(ledPinOutdoor, HIGH);  // Menghidupkan LED di luar ruangan jika cahaya rendah
+    digitalWrite(ledPinOutdoor, LOW);   // Mematikan LED di luar ruangan
+    Serial.print("MALAM, Lampu di Luar Rumah Hidup :");
+    Serial.println(statusLdr);  // Mencetak nilai sensor LDR
+  } else {
+    digitalWrite(ledPinOutdoor, LOW);  // Mematikan LED di luar ruangan jika cahaya cukup terang
+    Serial.print("SIANG, Lampu di Luar Rumah Mati :");
+    Serial.println(statusLdr);  // Mencetak nilai sensor LDR
+    delay (2000);
+  }
+}
